@@ -21,6 +21,26 @@ function numberToAmharic(n: number): string {
   return `${tens} ${units[u]}`
 }
 
+function numberToAmharicLatin(n: number): string {
+  const units = ['', 'and', 'hulet', 'sost', 'arat', 'amist', 'sidist', 'sebat', 'siment', 'zetegn']
+  const tens = {
+    10: 'asra',
+    20: 'haya',
+    30: 'selasa',
+    40: 'arba',
+    50: 'hamsa',
+    60: 'silisa',
+    70: 'seba',
+  } as Record<number,string>
+  if (n <= 9) return units[n]
+  if (n === 10) return tens[10]
+  if (n < 20) return `asra ${units[n - 10]}`
+  if (n % 10 === 0) return tens[n] || `${n}`
+  const t = Math.floor(n / 10) * 10
+  const u = n % 10
+  return `${tens[t] || t} ${units[u]}`
+}
+
 export function speakAmharicNumber(n: number, opts?: { prefix?: string }): void {
   try {
     const text = `${opts?.prefix ?? ''}${opts?.prefix ? ' ' : ''}${numberToAmharic(n)}`
@@ -112,7 +132,7 @@ export async function speakAmharicCall(n: number, letter?: 'B'|'I'|'N'|'G'|'O'):
 	} catch {}
 }
 
-export async function speakAmharicCallSingle(n: number, letter?: 'B'|'I'|'N'|'G'|'O'): Promise<void> {
+export async function speakAmharicCallSingle(n: number, letter?: 'B'|'I'|'N'|'G'|'O', rate: number = 0.8): Promise<void> {
 	try {
 		const letterText = letter ? getAmharicLetter(letter) : ''
 		const numberText = numberToAmharic(n)
@@ -122,12 +142,21 @@ export async function speakAmharicCallSingle(n: number, letter?: 'B'|'I'|'N'|'G'
 		const voices = await waitForVoices()
 		const amVoice = voices.find(v => (v.lang || '').toLowerCase().startsWith('am'))
 
-		const utter = new SpeechSynthesisUtterance(text)
-		utter.lang = 'am-ET'
-		utter.rate = 0.95
-		utter.pitch = 1
-		if (amVoice) utter.voice = amVoice
-		window.speechSynthesis.speak(utter)
+		if (amVoice) {
+			const utter = new SpeechSynthesisUtterance(text)
+			utter.lang = 'am-ET'
+			utter.rate = rate
+			utter.pitch = 1
+			utter.voice = amVoice
+			window.speechSynthesis.speak(utter)
+		} else {
+			// Fallback: speak transliterated Amharic with default voice so the call is audible
+			const latin = numberToAmharicLatin(n)
+			const utter = new SpeechSynthesisUtterance(`${letter ?? ''} ${latin}`.trim())
+			utter.rate = rate
+			utter.pitch = 1
+			window.speechSynthesis.speak(utter)
+		}
 	} catch {}
 }
 

@@ -45,7 +45,11 @@ Server listens on port 4000.
 - Implemented single-utterance (letter + number) to improve reliability.
 
 ## Screenshots
-Place screenshots in `docs/` and link here:
+Home view:
+
+![Home](docs/home.png)
+
+Place additional screenshots in `docs/` and link here:
 - docs/screenshot-1.png
 - docs/screenshot-2.png
 
@@ -63,6 +67,11 @@ server/           # Express + Socket.IO backend
 - 80/90-ball variants
 - Payments & monetization (free vs paid sessions, expiry)
 - Optional recorded Amharic audio pack (B-01..O-75)
+
+## Recent Changes
+- Amharic caller switched to single-utterance with adjustable voice speed.
+- Default auto-draw interval set to 1500 ms; configurable in UI.
+- Added three.js rotating 3D bingo ball in Caller.
 
 ## License
 MIT

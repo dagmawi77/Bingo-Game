@@ -3,6 +3,7 @@ import { generateBingoCard75, BingoGrid } from './lib/bingo'
 import { ManualDraw75 } from './lib/draw'
 import { checkByPattern, WinPattern } from './lib/win'
 import { Card } from './components/Card'
+import { Ball3D } from './components/Ball3D'
 import './App.css'
 import { playCallSound } from './lib/sound'
 import { speakAmharicNumber, speakAmharicCall, speakAmharicCallSingle } from './lib/tts'
@@ -18,7 +19,8 @@ export function App(): JSX.Element {
   const [winText, setWinText] = React.useState<string>('')
   const [pattern, setPattern] = React.useState<WinPattern>('row')
   const [auto, setAuto] = React.useState(false)
-  const [intervalMs, setIntervalMs] = React.useState(1000)
+  const [intervalMs, setIntervalMs] = React.useState(1500)
+  const [ttsRate, setTtsRate] = React.useState(0.8)
   const [winIndices, setWinIndices] = React.useState<Array<[number, number]> | undefined>(undefined)
   const [perCardWinIndices, setPerCardWinIndices] = React.useState<Array<Array<[number, number]> | undefined>>([])
   const [autoDaub, setAutoDaub] = React.useState(true)
@@ -31,7 +33,7 @@ export function App(): JSX.Element {
     forceTick()
     playCallSound()
     const last = draw.getHistory().slice(-1)[0]
-    if (speakAmharic && typeof last === 'number') await speakAmharicCallSingle(last, getLetterForNumber(last))
+    if (speakAmharic && typeof last === 'number') await speakAmharicCallSingle(last, getLetterForNumber(last), ttsRate)
   }
 
   function resetDraws(): void {
@@ -71,7 +73,7 @@ export function App(): JSX.Element {
       playCallSound()
       if (speakDuringAuto) {
         const last = draw.getHistory().slice(-1)[0]
-        if (speakAmharic && typeof last === 'number') speakAmharicCallSingle(last, getLetterForNumber(last))
+        if (speakAmharic && typeof last === 'number') speakAmharicCallSingle(last, getLetterForNumber(last), ttsRate)
       }
     }, Math.max(250, intervalMs))
     return () => clearInterval(id)
@@ -140,6 +142,10 @@ export function App(): JSX.Element {
               <input type="number" value={intervalMs} onChange={(e) => setIntervalMs(Number(e.target.value) || 1000)} min={250} step={250} style={{ width: 90, marginLeft: 6 }} />
             </label>
             <label>
+              Voice speed:
+              <input type="number" value={ttsRate} onChange={(e) => setTtsRate(Math.max(0.5, Math.min(1.5, Number(e.target.value) || 0.8)))} step={0.1} min={0.5} max={1.5} style={{ width: 70, marginLeft: 6 }} />
+            </label>
+            <label>
               Auto-daub:
               <input type="checkbox" checked={autoDaub} onChange={(e) => setAutoDaub(e.target.checked)} style={{ marginLeft: 6 }} />
             </label>
@@ -172,10 +178,13 @@ export function App(): JSX.Element {
           )}
           <div style={{ marginTop: 12 }}>
             <div style={{ marginBottom: 6, fontWeight: 600 }}>Caller</div>
-            <div className="caller__last">{(() => {
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Ball3D number={(() => { const n = draw.getHistory().slice(-1)[0]; return typeof n === 'number' ? n : null })()} />
+              <div className="caller__last">{(() => {
               const n = draw.getHistory().slice(-1)[0]
               return typeof n === 'number' ? formatCall(n) : '—'
             })()}</div>
+            </div>
             <div style={{ margin: '8px 0 6px', fontWeight: 600 }}>History</div>
             <div className="draw__history">
               {draw.getHistory().map((n, idx, arr) => (
