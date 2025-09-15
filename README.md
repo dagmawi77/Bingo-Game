@@ -47,7 +47,7 @@ Server listens on port 4000.
 ## Screenshots
 Home view:
 
-![Home](docs/home.png)
+![Home](home.PNG)
 
 Place additional screenshots in `docs/` and link here:
 - docs/screenshot-1.png
