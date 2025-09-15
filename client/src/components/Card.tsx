@@ -6,9 +6,11 @@ type Props = {
   grid: BingoGrid
   marked: Set<number>
   winIndices?: Array<[number, number]>
+  onCellClick?: (row: number, col: number, value: number | 'FREE') => void
+  allowManual?: boolean
 }
 
-export function Card({ title, grid, marked, winIndices }: Props): JSX.Element {
+export function Card({ title, grid, marked, winIndices, onCellClick, allowManual }: Props): JSX.Element {
   const winSet = new Set((winIndices ?? []).map(([r, c]) => `${r}:${c}`))
 
   return (
@@ -30,7 +32,15 @@ export function Card({ title, grid, marked, winIndices }: Props): JSX.Element {
                 const isWinCell = winSet.has(`${rIdx}:${cIdx}`)
                 const className = `card__td${isMarked ? ' card__td--marked' : ''}${isWinCell ? ' card__td--win' : ''}`
                 return (
-                  <td key={cIdx} className={className}>
+                  <td
+                    key={cIdx}
+                    className={className}
+                    onClick={() => {
+                      if (!allowManual) return
+                      if (onCellClick) onCellClick(rIdx, cIdx, cell)
+                    }}
+                    style={{ cursor: allowManual ? 'pointer' : 'default' }}
+                  >
                     {cell === 'FREE' ? 'FREE' : cell}
                   </td>
                 )
